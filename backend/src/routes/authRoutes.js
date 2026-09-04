@@ -1,0 +1,14 @@
+const express = require('express');
+const { register, login, refresh, logout, getMe } = require('../controllers/authController');
+const { protect } = require('../middleware/auth');
+const cookieParser = require('cookie-parser');
+
+const router = express.Router();
+
+router.post('/register', register);
+router.post('/login', login);
+router.post('/refresh', refresh);
+router.post('/logout', logout);
+router.get('/me', protect, getMe);
+
+module.exports = router;
