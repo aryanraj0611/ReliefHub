@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
+const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,6 +14,9 @@ mongoose.connect(process.env.MONGODB_URI)
 app.get("/", (req, res) => {
   res.send("Express server is working!");
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on PORT ${PORT}`);
