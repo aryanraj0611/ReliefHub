@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
+const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/authRoutes');
 
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
   res.send("Express server is working!");
 });
 
+app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);

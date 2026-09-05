@@ -21,20 +21,21 @@ const protect = asyncHandler(async (req, res, next) => {
     throw new Error('Not authorized — no access token provided');
   }
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    // We look the user up so req.user reflects the *current* role/data,
-    // not whatever was true when the token was issued.
-    req.user = await User.findById(decoded.id);
-    if (!req.user) {
-      res.status(401);
-      throw new Error('User for this token no longer exists');
-    }
-    next();
-  } catch (err) {
+    decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  } catch {
     res.status(401);
     throw new Error('Not authorized — token invalid or expired');
   }
+
+  // Outside the try block so DB errors surface as 500, not a false 401.
+  req.user = await User.findById(decoded.id);
+  if (!req.user) {
+    res.status(401);
+    throw new Error('User for this token no longer exists');
+  }
+  next();
 });
 
 // Usage: router.post('/dispatch', protect, authorize('eoc', 'admin'), handler)
