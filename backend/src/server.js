@@ -1,10 +1,13 @@
 require("dotenv").config();
+const http = require('http');
 const express = require("express");
 const mongoose = require("mongoose");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const cookieParser = require('cookie-parser');
+const { initSocket } = require('./services/socketService');
 
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');   
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,10 +25,14 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);      
 
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);    
+initSocket(httpServer);                 
+
+httpServer.listen(PORT, () => {       
   console.log(`Server running on PORT ${PORT}`);
 });
