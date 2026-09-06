@@ -9,6 +9,7 @@ const { initSocket } = require('./services/socketService');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const facilityRoutes = require('./routes/facilityRoutes');
+const incidentRoutes = require('./routes/incidentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,7 +28,8 @@ app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes); 
-app.use('/api/facilities', facilityRoutes);     
+app.use('/api/facilities', facilityRoutes); 
+app.use('/api/incidents', incidentRoutes);    
 
 app.use(notFound);
 app.use(errorHandler);
