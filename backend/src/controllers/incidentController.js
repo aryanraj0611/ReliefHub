@@ -14,7 +14,13 @@ const createIncident = asyncHandler(async (req, res) => {
     throw new Error('title, description, lng and lat are required');
   }
 
-  const incident = await Incident.create({
+  if (isNaN(Number(lng)) || isNaN(Number(lat))) {
+    res.status(400);
+    throw new Error('lng and lat must be valid numbers');
+  }
+
+  // Build in memory so _id exists for duplicate detection after a single save.
+  const incident = new Incident({
     type: type || 'incident_report',
     title,
     description,
@@ -25,10 +31,8 @@ const createIncident = asyncHandler(async (req, res) => {
     timeline: [{ status: 'reported', note: 'Report submitted by citizen', actor: req.user?._id }],
   });
 
-  const [aiResult, duplicateId] = await Promise.all([
-    analyzeIncident({ title, description }),
-    findDuplicate(incident),
-  ]);
+  // AI classification needs no DB — run it while the document is still in memory.
+  const aiResult = await analyzeIncident({ title, description });
 
   incident.aiAnalysis = {
     summary: aiResult.summary,
@@ -41,18 +45,22 @@ const createIncident = asyncHandler(async (req, res) => {
     generatedAt: new Date(),
     source: aiResult.source,
   };
-  // Only auto-apply the AI's severity suggestion if the citizen didn't
-  // already flag it as critical themselves (never downgrade urgency).
+
+  // Never downgrade urgency if the citizen already flagged it critical.
   if (incident.severity !== 'critical') {
     incident.severity = aiResult.suggestedSeverity || incident.severity;
   }
 
+  // Single DB write — complete document, no partial state window.
+  await incident.save();
+
+  // Duplicate detection queries the DB, so it must run after the save.
+  const duplicateId = await findDuplicate(incident);
   if (duplicateId) {
     incident.duplicateOf = duplicateId;
     incident.status = 'merged';
+    await incident.save();
   }
-
-  await incident.save();
 
   getIO().emit('incident:new', incident);
 

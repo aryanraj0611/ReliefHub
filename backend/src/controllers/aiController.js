@@ -8,32 +8,28 @@ const { distanceMeters } = require('../utils/geo');
 // @route GET /api/ai/situation-summary
 // @access eoc, admin
 const getSituationSummary = asyncHandler(async (req, res) => {
-  const openIncidents = await Incident.find({ status: { $nin: ['resolved', 'merged'] } });
+  // Aggregate counts by severity in a single DB query — avoids loading all
+  // incident documents into memory as the collection grows.
+  const severities = ['low', 'medium', 'high', 'critical'];
+  const results = await Incident.aggregate([
+    { $match: { status: { $nin: ['resolved', 'merged'] } } },
+    { $group: { _id: '$severity', count: { $sum: 1 } } },
+  ]);
 
-  const counts = openIncidents.reduce((acc, inc) => {
-    acc[inc.severity] = (acc[inc.severity] || 0) + 1;
-    return acc;
-  }, {});
+  const counts = Object.fromEntries(results.map((r) => [r._id, r.count]));
+  const totalOpen = results.reduce((sum, r) => sum + r.count, 0);
 
-  // For the portfolio project we keep this deterministic/offline — it's a
-  // simple aggregation rather than another AI call, which keeps the EOC
-  // dashboard fast and free-tier-quota-friendly. Swapping this for a real
-  // Gemini call is a one-line change (see aiService.analyzeIncident).
   const summary =
-    openIncidents.length === 0
+    totalOpen === 0
       ? 'No active incidents. All clear.'
-      : `${openIncidents.length} active incident(s): ` +
-        Object.entries(counts)
-          .map(([severity, count]) => `${count} ${severity}`)
+      : `${totalOpen} active incident(s): ` +
+        severities
+          .filter((s) => counts[s])
+          .map((s) => `${counts[s]} ${s}`)
           .join(', ') +
         '. Prioritize critical and high severity reports first.';
 
-  res.json({
-    success: true,
-    summary,
-    counts,
-    totalOpen: openIncidents.length,
-  });
+  res.json({ success: true, summary, counts, totalOpen });
 });
 
 // @route POST /api/ai/classify
@@ -83,6 +79,11 @@ const chat = asyncHandler(async (req, res) => {
   let nearestShelter = null;
 
   if (lng !== undefined && lat !== undefined) {
+    if (isNaN(Number(lng)) || isNaN(Number(lat))) {
+      res.status(400);
+      throw new Error('lng and lat must be valid numbers');
+    }
+
     const shelter = await Facility.findOne({
       type: 'shelter',
       status: { $ne: 'closed' },

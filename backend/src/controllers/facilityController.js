@@ -33,6 +33,11 @@ const createFacility = asyncHandler(async (req, res) => {
     throw new Error('type, name, lng and lat are required');
   }
 
+  if (isNaN(Number(lng)) || isNaN(Number(lat))) {
+    res.status(400);
+    throw new Error('lng and lat must be valid numbers');
+  }
+
   // Hospital/shelter staff can only ever create a facility of their own type,
   // and it's always attributed to them — prevents a hospital account from
   // registering a shelter (or someone else's facility) through this route.

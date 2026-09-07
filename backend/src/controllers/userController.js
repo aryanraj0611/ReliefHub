@@ -53,6 +53,11 @@ const reviewVerificationDocument = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
+  if (!user.verificationDocument?.dataUrl) {
+    res.status(400);
+    throw new Error('This user has not submitted a verification document');
+  }
+
   user.verificationDocument.status = status;
   user.verificationDocument.reviewedBy = req.user._id;
   user.verificationDocument.reviewNote = note || '';

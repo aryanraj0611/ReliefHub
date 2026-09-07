@@ -85,8 +85,6 @@ function mockAnalyze({ title = '', description = '' }) {
 }
 
 async function geminiAnalyze({ title, description }) {
-  // Node 18+ (our documented minimum, see package.json "engines") ships a
-  // built-in global fetch, so no extra HTTP client dependency is needed.
   const prompt = `You are an emergency dispatch triage assistant. Analyze this
 citizen incident report and respond with STRICT JSON only, no markdown fences,
 matching exactly this shape:
@@ -95,17 +93,29 @@ matching exactly this shape:
 Title: ${title}
 Description: ${description}`;
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json' },
-      }),
-    }
-  );
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  let res;
+  try {
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+        signal: controller.signal,
+      }
+    );
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     throw new Error(`Gemini API responded with status ${res.status}`);
@@ -113,6 +123,7 @@ Description: ${description}`;
 
   const data = await res.json();
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!rawText) throw new Error('Gemini returned an empty response');
   const parsed = JSON.parse(rawText);
 
   return { ...parsed, source: 'gemini' };
