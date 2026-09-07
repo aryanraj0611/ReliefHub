@@ -1,6 +1,6 @@
   // aiService.js — classifies an incident report (Gemini if available, else
   // a keyword-based mock) and always attaches a deterministic resource plan.
-  
+
 const KEYWORD_RULES = [
   { keywords: ['flood', 'water', 'drowning', 'submerged'], category: 'flood', severity: 'high' },
   { keywords: ['fire', 'burning', 'smoke', 'flames'], category: 'fire', severity: 'critical' },
@@ -96,7 +96,7 @@ Title: ${title}
 Description: ${description}`;
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
