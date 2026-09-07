@@ -22,9 +22,9 @@ const AuthContext = createContext(null);
  * The httpOnly refresh-token cookie is managed by the browser transparently.
  */
 export function AuthProvider({ children }) {
-  const [user,        setUser]      = useState(null);
-  const [accessToken, setToken]     = useState(null);
-  const [isLoading,   setIsLoading] = useState(true); // true while restoring session on boot
+  const [user,setUser]= useState(null);
+  const [accessToken,setToken] = useState(null);
+  const [isLoading,setIsLoading] = useState(true); // true while restoring session on boot
   const navigate = useNavigate();
 
   // ── Helpers ────────────────────────────────────────────────────────────────

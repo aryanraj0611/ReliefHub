@@ -20,6 +20,16 @@
   .leaflet-container {
     z-index: 0;
   }
+
+  /* Critical marker pulse — slower than Tailwind's default animate-ping */
+  @keyframes ping-slow {
+    0%   { transform: scale(1);   opacity: 0.6; }
+    80%  { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  .animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
 }
 
 @layer components {

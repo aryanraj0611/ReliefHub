@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
+import MyReports from './pages/citizen/MyReports';
 import EOCDashboard from './pages/eoc/EOCDashboard';
 import FacilityPortal from './pages/facility/FacilityPortal';
 import RescueConsole from './pages/rescue/RescueConsole';
@@ -16,7 +17,8 @@ export default function App() {
 
       {/* Protected — citizen, volunteer, ngo */}
       <Route element={<ProtectedRoute allowedRoles={['citizen', 'volunteer', 'ngo']} />}>
-        <Route path="/citizen" element={<CitizenDashboard />} />
+        <Route path="/citizen"             element={<CitizenDashboard />} />
+        <Route path="/citizen/my-reports"  element={<MyReports />} />
       </Route>
 
       {/* Protected — EOC + admin */}
