@@ -115,9 +115,10 @@ export default function MapView({
   pickerMode = false,
   pickerMarker = null,
   onLocationPick,
-  center = [20.5937, 78.9629], // India center — adjust per deployment
+  center = [20.5937, 78.9629],
   zoom = 5,
   className = 'h-full w-full',
+  children, // allows callers to inject react-leaflet sub-components (e.g. MapPanner)
 }) {
   return (
     <MapContainer
@@ -125,7 +126,6 @@ export default function MapView({
       zoom={zoom}
       className={className}
       style={{ background: '#0b1221' }}
-      // Prevent scroll-zoom from hijacking page scroll on mobile
       scrollWheelZoom={true}
     >
       <TileLayer
@@ -212,6 +212,9 @@ export default function MapView({
           </Marker>
         );
       })}
+
+      {/* Injected sub-components (e.g. MapPanner from EOCDashboard) */}
+      {children}
     </MapContainer>
   );
 }

@@ -5,6 +5,7 @@ import Register from './pages/auth/Register';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
 import MyReports from './pages/citizen/MyReports';
 import EOCDashboard from './pages/eoc/EOCDashboard';
+import VerificationQueue from './pages/eoc/VerificationQueue';
 import FacilityPortal from './pages/facility/FacilityPortal';
 import RescueConsole from './pages/rescue/RescueConsole';
 
@@ -23,7 +24,8 @@ export default function App() {
 
       {/* Protected — EOC + admin */}
       <Route element={<ProtectedRoute allowedRoles={['eoc', 'admin']} />}>
-        <Route path="/eoc" element={<EOCDashboard />} />
+        <Route path="/eoc"                element={<EOCDashboard />} />
+        <Route path="/eoc/verification"   element={<VerificationQueue />} />
       </Route>
 
       {/* Protected — rescue team */}

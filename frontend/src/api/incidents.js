@@ -24,6 +24,11 @@ const createIncident = async (payload) => {
   return data.incident;
 };
 
+const updateIncidentStatus = async ({ id, status, note }) => {
+  const { data } = await api.patch(`/incidents/${id}/status`, { status, note });
+  return data.incident;
+};
+
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 export function useIncidents() {
   return useQuery({
@@ -47,9 +52,30 @@ export function useCreateIncident() {
   return useMutation({
     mutationFn: createIncident,
     onSuccess: () => {
-      // Invalidate both lists so map + MyReports refresh immediately
       queryClient.invalidateQueries({ queryKey: incidentKeys.all });
       queryClient.invalidateQueries({ queryKey: incidentKeys.mine });
+    },
+  });
+}
+
+export function useUpdateIncidentStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateIncidentStatus,
+    // Optimistic update — swap status in-place so the sidebar reacts instantly
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: incidentKeys.all });
+      const prev = queryClient.getQueryData(incidentKeys.all);
+      queryClient.setQueryData(incidentKeys.all, (old) =>
+        old?.map((inc) => (inc._id === id ? { ...inc, status } : inc))
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(incidentKeys.all, ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: incidentKeys.all });
     },
   });
 }
