@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Incident = require('../models/Incident');
 const Facility = require('../models/Facility');
 const { analyzeIncident } = require('../services/aiService');
-const { generateCitizenAdvice, parseEOCQuery } = require('../services/chatService');
+const { generateChatReply, parseEOCQuery } = require('../services/chatService');
 const { distanceMeters } = require('../utils/geo');
 
 // @route GET /api/ai/situation-summary
@@ -75,7 +75,7 @@ const chat = asyncHandler(async (req, res) => {
   }
 
   // Citizen-facing: safety advice + nearest shelter, if we have a location.
-  let reply = generateCitizenAdvice(message);
+  let reply = await generateChatReply(message, req.user.role);
   let nearestShelter = null;
 
   if (lng !== undefined && lat !== undefined) {

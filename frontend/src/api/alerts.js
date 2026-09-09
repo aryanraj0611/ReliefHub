@@ -27,7 +27,7 @@ export function useActiveAlerts() {
     queryKey: alertKeys.active,
     queryFn:  fetchActiveAlerts,
     staleTime: 15_000,
-    refetchInterval: 20_000,
+    // refetchInterval removed — socket events push new alerts in real time
   });
 }
 

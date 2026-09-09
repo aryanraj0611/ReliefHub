@@ -38,8 +38,8 @@ export function useIncidents() {
   return useQuery({
     queryKey: incidentKeys.all,
     queryFn:  fetchIncidents,
-    staleTime: 20_000, // 20 s — map refreshes frequently enough
-    refetchInterval: 30_000, // live polling for real-time feel
+    staleTime: 20_000,
+    // refetchInterval removed — socket events keep the cache fresh in real time
   });
 }
 
