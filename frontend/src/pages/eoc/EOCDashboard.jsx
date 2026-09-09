@@ -9,6 +9,7 @@ import FacilityDirectory from '../../components/FacilityDirectory';
 import Loader from '../../components/Loader';
 import MapView, { CATEGORY_EMOJI } from '../../components/MapView';
 import Navbar from '../../components/Navbar';
+import RescueTeamsPanel from '../../components/RescueTeamsPanel';
 import StatusBadge from '../../components/StatusBadge';
 
 // ── Filter config ─────────────────────────────────────────────────────────────
@@ -148,6 +149,7 @@ export default function EOCDashboard() {
   const tabs = [
     { id: 'map',        label: 'Live Map' },
     { id: 'facilities', label: 'Facilities' },
+    { id: 'rescue',     label: 'Rescue Teams' },
   ];
 
   return (
@@ -236,6 +238,11 @@ export default function EOCDashboard() {
           {activeTab === 'facilities' && (
             <div className="h-full overflow-hidden flex flex-col">
               <FacilityDirectory />
+            </div>
+          )}
+          {activeTab === 'rescue' && (
+            <div className="h-full overflow-hidden flex flex-col">
+              <RescueTeamsPanel />
             </div>
           )}
         </div>
