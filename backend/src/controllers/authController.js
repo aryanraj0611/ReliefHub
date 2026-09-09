@@ -191,5 +191,5 @@ const logout = asyncHandler(async (req, res) => {
 const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user });
 });
-
+ 
 module.exports = { register, login, refresh, logout, getMe };

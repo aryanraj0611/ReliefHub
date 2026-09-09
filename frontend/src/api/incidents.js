@@ -24,8 +24,12 @@ const createIncident = async (payload) => {
   return data.incident;
 };
 
-const updateIncidentStatus = async ({ id, status, note }) => {
-  const { data } = await api.patch(`/incidents/${id}/status`, { status, note });
+const updateIncidentStatus = async ({ id, status, note, assignedTeam }) => {
+  const { data } = await api.patch(`/incidents/${id}/status`, {
+    status,
+    note,
+    ...(assignedTeam ? { assignedTeam } : {}),
+  });
   return data.incident;
 };
 

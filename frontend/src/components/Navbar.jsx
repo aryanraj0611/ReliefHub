@@ -35,7 +35,7 @@ export default function Navbar() {
       {/* Brand */}
       <div className="flex items-center gap-2">
         <span className="text-red-500 font-bold text-xl tracking-tight select-none">
-          Crisis<span className="text-slate-100">Grid</span>
+          Relief<span className="text-slate-100">Hub</span>
         </span>
         <span className="hidden sm:block text-slate-600 text-xs uppercase tracking-widest mt-0.5">
           Emergency Response

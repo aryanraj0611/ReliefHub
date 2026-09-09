@@ -48,7 +48,7 @@ export default function Login() {
         <div className="text-center">
           <p className="text-xs uppercase tracking-widest text-slate-500 mb-1">Emergency Response Platform</p>
           <h1 className="text-3xl font-bold text-slate-100">
-            Crisis<span className="text-red-500">Grid</span>
+            Relief<span className="text-red-500">Hub</span>
           </h1>
           <p className="text-slate-400 text-sm mt-2">Sign in to your account</p>
         </div>
