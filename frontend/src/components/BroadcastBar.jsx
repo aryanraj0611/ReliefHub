@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useActiveAlerts, useDismissAlert, useIssueAlert } from '../api/alerts';
+import { useToast } from '../context/ToastContext';
 import Button from './Button';
 
 const SEVERITY_STYLES = {
@@ -18,6 +19,7 @@ export default function BroadcastBar() {
   const { data: alerts = [] } = useActiveAlerts();
   const { mutateAsync: issue, isPending: issuing } = useIssueAlert();
   const { mutateAsync: dismiss } = useDismissAlert();
+  const { showToast } = useToast();
 
   const [composing, setComposing] = useState(false);
   const [message,   setMessage]   = useState('');
@@ -33,8 +35,10 @@ export default function BroadcastBar() {
       await issue({ message: message.trim(), severity });
       setMessage('');
       setComposing(false);
+      showToast('Alert broadcast sent', 'success');
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to send alert');
+      showToast("Couldn't send alert — please try again", 'error');
     }
   };
 

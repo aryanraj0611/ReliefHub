@@ -4,6 +4,7 @@ import { useDirectory, useReviewDocument, useVerificationDocument } from '../../
 import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import Navbar from '../../components/Navbar';
+import { useToast } from '../../context/ToastContext';
 
 const ROLE_LABEL = {
   eoc:         'EOC Staff',
@@ -34,13 +35,15 @@ function VerificationCard({ entry }) {
     { enabled: expanded }
   );
   const { mutateAsync: review, isPending } = useReviewDocument();
+  const { showToast } = useToast();
 
   const handleReview = async (status) => {
     try {
       await review({ userId: entry._id, status, note });
       setConfirmed(status);
+      showToast(`Verification ${status}`, 'success');
     } catch (e) {
-      console.error(e);
+      showToast("Couldn't save review — please try again", 'error');
     }
   };
 

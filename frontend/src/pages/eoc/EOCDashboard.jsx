@@ -11,6 +11,8 @@ import MapView, { CATEGORY_EMOJI } from '../../components/MapView';
 import Navbar from '../../components/Navbar';
 import RescueTeamsPanel from '../../components/RescueTeamsPanel';
 import StatusBadge from '../../components/StatusBadge';
+import { useToast } from '../../context/ToastContext';
+import { timeAgo } from '../../utils/constants';
 
 // ── Filter config ─────────────────────────────────────────────────────────────
 const SEVERITY_FILTERS = [
@@ -42,14 +44,7 @@ const NEXT_STATUSES = {
 
 const SEVERITY_SORT = { critical: 0, high: 1, medium: 2, low: 3 };
 
-function timeAgo(d) {
-  const m = Math.floor((Date.now() - new Date(d)) / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
+// timeAgo imported from utils/constants
 
 // ── Map pan helper — must be a child of MapContainer ─────────────────────────
 function MapPanner({ target }) {
@@ -63,6 +58,7 @@ function MapPanner({ target }) {
 // ── Incident sidebar card ─────────────────────────────────────────────────────
 function IncidentCard({ incident, onSelect, isSelected }) {
   const { mutate: updateStatus, isPending } = useUpdateIncidentStatus();
+  const { showToast } = useToast();
   const nexts = NEXT_STATUSES[incident.status] ?? [];
 
   return (
@@ -94,7 +90,13 @@ function IncidentCard({ incident, onSelect, isSelected }) {
               <button
                 key={s}
                 disabled={isPending}
-                onClick={() => updateStatus({ id: incident._id, status: s })}
+                onClick={() => updateStatus(
+                  { id: incident._id, status: s },
+                  {
+                    onSuccess: () => showToast('Status updated', 'success'),
+                    onError:   () => showToast("Couldn't update status — please try again", 'error'),
+                  }
+                )}
                 className="text-[10px] px-2 py-0.5 rounded border border-slate-600 text-slate-300
                            hover:border-red-500/60 hover:text-red-300 transition-colors disabled:opacity-40 capitalize"
               >
@@ -247,8 +249,8 @@ export default function EOCDashboard() {
           )}
         </div>
 
-        {/* Incident sidebar */}
-        <div className="w-80 shrink-0 border-l border-slate-700/60 flex flex-col bg-navy-900/50 overflow-hidden">
+        {/* Incident sidebar — 256px on tablet, 320px on desktop */}
+        <div className="w-64 md:w-80 shrink-0 border-l border-slate-700/60 flex flex-col bg-navy-900/50 overflow-hidden">
           <div className="px-3 py-2 border-b border-slate-700/40 shrink-0">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
               Incidents · {filtered.length}

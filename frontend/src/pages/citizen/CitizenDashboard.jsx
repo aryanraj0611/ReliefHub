@@ -71,18 +71,21 @@ export default function CitizenDashboard() {
           </div>
         )}
 
-        {/* Report Incident FAB — bottom-right, leaves space for future chatbot */}
+        {/* Report Incident FAB
+            • bottom-24 (96px) clears the chatbot FAB at bottom-4 (16px + 56px = 72px)
+            • on mobile: icon-only pill so it doesn't overlap the chatbot panel width
+        */}
         <button
           onClick={() => setShowForm(true)}
-          className="absolute bottom-24 right-4 z-[500] flex items-center gap-2
+          className="absolute bottom-24 right-4 z-[600] flex items-center gap-2
                      bg-red-600 hover:bg-red-500 active:bg-red-700
-                     text-white font-semibold text-sm px-4 py-3 rounded-full
+                     text-white font-semibold text-sm px-3 sm:px-4 py-3 rounded-full
                      shadow-glow transition-colors duration-150
                      focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-navy-900"
           aria-label="Report an incident"
         >
           <span className="text-lg leading-none">＋</span>
-          Report Incident
+          <span className="hidden sm:inline">Report Incident</span>
         </button>
       </div>
 

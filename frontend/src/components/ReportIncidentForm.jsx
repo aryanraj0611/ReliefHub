@@ -4,6 +4,7 @@ import Button from './Button';
 import ErrorBanner from './ErrorBanner';
 import Input from './Input';
 import MapView from './MapView';
+import { useToast } from '../context/ToastContext';
 
 // ── Category selector config ──────────────────────────────────────────────────
 const CATEGORIES = [
@@ -88,6 +89,7 @@ function ConfirmationCard({ incident, onClose }) {
 // ── Main form ─────────────────────────────────────────────────────────────────
 export default function ReportIncidentForm({ onClose }) {
   const { mutateAsync: createIncident, isPending } = useCreateIncident();
+  const { showToast } = useToast();
 
   const [step, setStep] = useState('form'); // 'form' | 'success'
   const [createdIncident, setCreatedIncident] = useState(null);
@@ -155,8 +157,10 @@ export default function ReportIncidentForm({ onClose }) {
       });
       setCreatedIncident(incident);
       setStep('success');
+      showToast('Incident reported successfully', 'success');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Failed to submit report');
+      showToast("Couldn't report incident — please try again", 'error');
     }
   };
 

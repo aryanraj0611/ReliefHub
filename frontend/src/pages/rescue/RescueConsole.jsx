@@ -6,66 +6,50 @@ import MapView, { CATEGORY_EMOJI } from '../../components/MapView';
 import Navbar from '../../components/Navbar';
 import StatusBadge from '../../components/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { SEVERITY_BORDER, SEVERITY_TEXT, timeAgo } from '../../utils/constants';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// Statuses that are visible to rescue teams as "available to accept"
 const AVAILABLE_STATUSES = ['acknowledged'];
-
-// My-jobs: statuses a rescue team member would actively work
-const MY_JOB_STATUSES = ['dispatched', 'in_progress'];
-
-// Valid forward transitions for rescue team
+const MY_JOB_STATUSES    = ['dispatched', 'in_progress'];
 const NEXT_STATUS = {
   dispatched:  'in_progress',
   in_progress: 'resolved',
 };
 
-const SEVERITY_BORDER = {
-  critical: 'border-l-red-500',
-  high:     'border-l-orange-500',
-  medium:   'border-l-amber-500',
-  low:      'border-l-green-500',
-};
-
-const SEVERITY_TEXT = {
-  critical: 'text-red-400',
-  high:     'text-orange-400',
-  medium:   'text-amber-400',
-  low:      'text-green-400',
-};
-
-function timeAgo(d) {
-  const m = Math.floor((Date.now() - new Date(d)) / 60000);
-  if (m < 1)  return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
+// timeAgo imported from utils/constants
 
 // ── Single job card ───────────────────────────────────────────────────────────
 function JobCard({ incident, mode }) {
   // mode: 'available' | 'mine'
   const { user }    = useAuth();
   const { mutate: update, isPending } = useUpdateIncidentStatus();
+  const { showToast } = useToast();
   const [showMap, setShowMap] = useState(false);
 
   const [lng, lat] = incident.location?.coordinates ?? [0, 0];
   const hasCoords  = !!(lat && lng);
 
   const handleAccept = () => {
-    update({
-      id:           incident._id,
-      status:       'dispatched',
-      assignedTeam: user.id,
-      note:         `Accepted by ${user.name}`,
-    });
+    update(
+      { id: incident._id, status: 'dispatched', assignedTeam: user.id, note: `Accepted by ${user.name}` },
+      {
+        onSuccess: () => showToast('Job accepted', 'success'),
+        onError:   () => showToast("Couldn't accept job — please try again", 'error'),
+      }
+    );
   };
 
   const handleAdvance = () => {
     const next = NEXT_STATUS[incident.status];
     if (!next) return;
-    update({ id: incident._id, status: next, note: `Status updated by ${user.name}` });
+    update(
+      { id: incident._id, status: next, note: `Status updated by ${user.name}` },
+      {
+        onSuccess: () => showToast('Status updated', 'success'),
+        onError:   () => showToast("Couldn't update status — please try again", 'error'),
+      }
+    );
   };
 
   const nextStatus = NEXT_STATUS[incident.status];
@@ -255,8 +239,8 @@ export default function RescueConsole() {
         ))}
       </div>
 
-      {/* Content */}
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-5">
+      {/* Content — pb-20 keeps last card clear of the chatbot FAB on mobile */}
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-5 pb-20">
         {isLoading ? (
           <Loader text="Loading jobs…" />
         ) : (

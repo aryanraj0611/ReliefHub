@@ -1,26 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useMyIncidents } from '../../api/incidents';
 import Loader from '../../components/Loader';
+import { CATEGORY_EMOJI } from '../../components/MapView';
 import Navbar from '../../components/Navbar';
 import StatusBadge from '../../components/StatusBadge';
-import { CATEGORY_EMOJI } from '../../components/MapView';
-
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1)  return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
-const SEVERITY_DOT = {
-  low:      'bg-green-500',
-  medium:   'bg-amber-500',
-  high:     'bg-orange-500',
-  critical: 'bg-red-500',
-};
+import { SEVERITY_DOT, SEVERITY_TEXT, timeAgo } from '../../utils/constants';
 
 export default function MyReports() {
   const { data: incidents = [], isLoading, isError } = useMyIncidents();
@@ -45,8 +29,9 @@ export default function MyReports() {
         </Link>
       </div>
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 pb-20">
+        {/* Header — wraps gracefully on small screens */}
+        <div className="flex items-center justify-between gap-2 mb-5 flex-wrap">
           <h1 className="text-xl font-bold text-slate-100">My Reports</h1>
           <span className="text-xs text-slate-500">{incidents.length} total</span>
         </div>
@@ -98,12 +83,9 @@ export default function MyReports() {
                 <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap pt-0.5">
                   <span className="capitalize">{inc.category}</span>
                   <span>·</span>
-                  <span className={`capitalize font-medium ${
-                    inc.severity === 'critical' ? 'text-red-400' :
-                    inc.severity === 'high'     ? 'text-orange-400' :
-                    inc.severity === 'medium'   ? 'text-amber-400' :
-                    'text-green-400'
-                  }`}>{inc.severity}</span>
+                  <span className={`capitalize font-medium ${SEVERITY_TEXT[inc.severity] ?? 'text-slate-400'}`}>
+                    {inc.severity}
+                  </span>
                   <span>·</span>
                   <span>{timeAgo(inc.createdAt)}</span>
                 </div>

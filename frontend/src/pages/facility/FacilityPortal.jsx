@@ -11,6 +11,7 @@ import Loader from '../../components/Loader';
 import MapView from '../../components/MapView';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 // ── Capacity bar helpers (mirrors FacilityDirectory logic) ────────────────────
 function capacityColor(pct) {
@@ -208,12 +209,12 @@ function RegisterForm({ userRole }) {
 // ── Capacity stepper ──────────────────────────────────────────────────────────
 function CapacityEditor({ facility }) {
   const { mutate: updateCap, isPending } = useUpdateCapacity();
+  const { showToast } = useToast();
 
   const [localUsed, setLocalUsed] = useState(facility.capacityUsed ?? 0);
-  const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved'
+  const [saveState, setSaveState] = useState('idle');
   const debounceRef = useRef(null);
 
-  // Keep local state in sync if the query refreshes from server
   useEffect(() => {
     setLocalUsed(facility.capacityUsed ?? 0);
   }, [facility.capacityUsed]);
@@ -230,12 +231,15 @@ function CapacityEditor({ facility }) {
               setSaveState('saved');
               setTimeout(() => setSaveState('idle'), 2000);
             },
-            onError: () => setSaveState('idle'),
+            onError: () => {
+              setSaveState('idle');
+              showToast("Couldn't save capacity — please try again", 'error');
+            },
           }
         );
       }, 800);
     },
-    [facility._id, updateCap]
+    [facility._id, updateCap, showToast]
   );
 
   const set = (val) => {
