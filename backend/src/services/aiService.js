@@ -84,14 +84,12 @@ function mockAnalyze({ title = '', description = '' }) {
   };
 }
 
-async function geminiAnalyze({ title, description }) {
-  const prompt = `You are an emergency dispatch triage assistant. Analyze this
-citizen incident report and respond with STRICT JSON only, no markdown fences,
-matching exactly this shape:
-{"summary": string (MAX 20 words, terse and actionable, e.g. "Flood affecting residential area. Approximately 40 people stranded. Immediate evacuation recommended."), "suggestedSeverity": "low"|"medium"|"high"|"critical", "suggestedCategory": "flood"|"fire"|"earthquake"|"medical"|"structural"|"other", "confidence": number (0-100, how confident you are this is a genuine, coherent, non-spam report)}
+async function groqAnalyze({ title, description }) {
+  const systemPrompt = `You are an emergency dispatch triage assistant. Analyze the incident report
+and respond with STRICT JSON only, no markdown fences, matching exactly this shape:
+{"summary": string (MAX 20 words, terse and actionable, e.g. "Flood affecting residential area. Approximately 40 people stranded. Immediate evacuation recommended."), "suggestedSeverity": "low"|"medium"|"high"|"critical", "suggestedCategory": "flood"|"fire"|"earthquake"|"medical"|"structural"|"other", "confidence": number (0-100, how confident you are this is a genuine, coherent, non-spam report)}`;
 
-Title: ${title}
-Description: ${description}`;
+  const userPrompt = `Title: ${title}\nDescription: ${description}`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
@@ -99,16 +97,20 @@ Description: ${description}`;
   let res;
   try {
     res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+      'https://api.groq.com/openai/v1/chat/completions',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': process.env.GEMINI_API_KEY,
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json' },
+          model: 'openai/gpt-oss-120b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user',   content: userPrompt },
+          ],
+          response_format: { type: 'json_object' },
         }),
         signal: controller.signal,
       }
@@ -118,16 +120,19 @@ Description: ${description}`;
   }
 
   if (!res.ok) {
-    throw new Error(`Gemini API responded with status ${res.status}`);
+    throw new Error(`Groq API responded with status ${res.status}`);
   }
 
-  const data = await res.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('Gemini returned an empty response');
+  const data    = await res.json();
+  const rawText = data?.choices?.[0]?.message?.content;
+  if (!rawText) throw new Error('Groq returned an empty response');
   const parsed = JSON.parse(rawText);
 
-  return { ...parsed, source: 'gemini' };
+  return { ...parsed, source: 'groq' };
 }
+
+// Alias so any external import of the old name still works
+const geminiAnalyze = groqAnalyze;
 
 // ---------------------------------------------------------------------------
 // Resource recommendation — deliberately a deterministic rule table, NOT an
@@ -191,16 +196,16 @@ function computeResourceRecommendation({ category, severity }) {
  * resource recommendation on top, regardless of which classifier ran.
  */
 async function analyzeIncident({ title, description }) {
-  const useGemini = process.env.DEMO_MODE !== 'true' && !!process.env.GEMINI_API_KEY;
+  const useGroq = process.env.DEMO_MODE !== 'true' && !!process.env.GROQ_API_KEY;
 
   let classification;
-  if (!useGemini) {
+  if (!useGroq) {
     classification = mockAnalyze({ title, description });
   } else {
     try {
-      classification = await geminiAnalyze({ title, description });
+      classification = await groqAnalyze({ title, description });
     } catch (err) {
-      console.warn(`[aiService] Gemini call failed, falling back to mock: ${err.message}`);
+      console.warn(`[aiService] Groq call failed, falling back to mock: ${err.message}`);
       classification = mockAnalyze({ title, description });
     }
   }
@@ -213,4 +218,4 @@ async function analyzeIncident({ title, description }) {
   return { ...classification, recommendedResources, etaMinutes };
 }
 
-module.exports = { analyzeIncident, mockAnalyze, computeResourceRecommendation, buildShortSummary };
+module.exports = { analyzeIncident, groqAnalyze, geminiAnalyze, mockAnalyze, computeResourceRecommendation, buildShortSummary };

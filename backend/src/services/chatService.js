@@ -72,30 +72,33 @@ function roleToSystemPrompt(role) {
   return SYSTEM_PROMPTS.citizen; // citizen, volunteer, ngo
 }
 
-// ── Gemini fallback (same fetch setup as aiService.geminiAnalyze) ─────────────
-async function geminiChatFallback(message, role) {
+// ── Groq chat fallback ────────────────────────────────────────────────────────
+async function groqChatFallback(message, role) {
+  console.log('KEY LOADED:', !!process.env.GROQ_API_KEY, process.env.GROQ_API_KEY?.slice(0,8));
   const systemPrompt = roleToSystemPrompt(role);
-  const fullPrompt   = `${systemPrompt}\n\nUser message: ${message}\n\nReply (plain text, 2-4 sentences):`;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000); // 5 s — tighter than incident analysis
+  const timer = setTimeout(() => controller.abort(), 5000);
 
   let res;
   try {
     res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
+      'https://api.groq.com/openai/v1/chat/completions',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': process.env.GEMINI_API_KEY,
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }],
-          generationConfig: {
-            maxOutputTokens: 150, // hard cap — keep replies short
-            temperature: 0.3,     // low temperature for consistent, factual tone
-          },
+          model: 'openai/gpt-oss-120b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user',   content: message },
+          ],
+          max_tokens:  150,
+          temperature: 0.3,
+          // No response_format — plain text expected
         }),
         signal: controller.signal,
       }
@@ -105,12 +108,12 @@ async function geminiChatFallback(message, role) {
   }
 
   if (!res.ok) {
-    throw new Error(`Gemini chat responded with status ${res.status}`);
+    throw new Error(`Groq chat responded with status ${res.status}`);
   }
 
   const data    = await res.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('Gemini chat returned empty response');
+  const rawText = data?.choices?.[0]?.message?.content;
+  if (!rawText) throw new Error('Groq chat returned empty response');
 
   return rawText.trim();
 }
@@ -143,13 +146,13 @@ async function generateChatReply(message, role) {
   }
 
   // ── 2. Gemini fallback ───────────────────────────────────────────────────
-  const useGemini = process.env.DEMO_MODE !== 'true' && !!process.env.GEMINI_API_KEY;
+  const useGroq = process.env.DEMO_MODE !== 'true' && !!process.env.GROQ_API_KEY;
 
-  if (useGemini) {
+  if (useGroq) {
     try {
-      return await geminiChatFallback(message, role);
+      return await groqChatFallback(message, role);
     } catch (err) {
-      console.warn(`[chatService] Gemini chat fallback failed: ${err.message}`);
+      console.warn(`[chatService] Groq chat fallback failed: ${err.message}`);
     }
   }
 

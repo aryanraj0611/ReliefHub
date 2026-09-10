@@ -51,7 +51,7 @@ const incidentSchema = new mongoose.Schema(
       etaMinutes: { type: Number, default: null },
       confidence: { type: Number, default: 50 }, // 0-100, AI's confidence in its own analysis
       generatedAt: { type: Date },
-      source: { type: String, enum: ['gemini', 'mock', 'none'], default: 'none' },
+      source: { type: String, enum: ['gemini', 'groq', 'mock', 'none'], default: 'none' },
     },
 
     // If this incident was auto-detected as a duplicate of another one.
