@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFacilities } from '../../api/facilities';
 import { useIncidents } from '../../api/incidents';
+import ErrorRetry from '../../components/ErrorRetry';
 import Loader from '../../components/Loader';
 import MapView from '../../components/MapView';
 import Navbar from '../../components/Navbar';
@@ -10,24 +11,25 @@ import ReportIncidentForm from '../../components/ReportIncidentForm';
 export default function CitizenDashboard() {
   const [showForm, setShowForm] = useState(false);
 
-  const { data: incidents = [], isLoading: incLoading } = useIncidents();
-  const { data: facilities = [] }                        = useFacilities();
+  const { data: incidents = [], isLoading: incLoading, isError: incError, refetch: refetchInc } = useIncidents();
+  const { data: facilities = [], isError: facError, refetch: refetchFac } = useFacilities();
 
   return (
     <div className="flex flex-col h-screen bg-navy-950">
       <Navbar />
 
       {/* Sub-nav tabs */}
-      <div className="flex items-center gap-4 px-4 sm:px-6 py-2 border-b border-slate-700/50 bg-navy-900/70 text-sm">
+      <div className="flex items-center gap-4 px-4 sm:px-6 py-2 border-b border-slate-700/50 bg-navy-900/70 text-sm relative">
         <Link
           to="/citizen"
-          className="text-slate-200 font-medium border-b-2 border-red-500 pb-1.5"
+          className="text-slate-200 font-medium border-b-2 border-red-500 pb-1.5 transition-all duration-200 relative"
         >
           Live Map
+          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t transition-all duration-200" />
         </Link>
         <Link
           to="/citizen/my-reports"
-          className="text-slate-400 hover:text-slate-200 pb-1.5 border-b-2 border-transparent hover:border-slate-500 transition-colors"
+          className="text-slate-400 hover:text-slate-200 pb-1.5 border-b-2 border-transparent hover:border-slate-500 transition-all duration-200"
         >
           My Reports
         </Link>
@@ -37,6 +39,8 @@ export default function CitizenDashboard() {
       <div className="relative flex-1">
         {incLoading ? (
           <Loader text="Loading incidents…" />
+        ) : incError ? (
+          <ErrorRetry message="Couldn't load incidents" onRetry={refetchInc} />
         ) : (
           <MapView
             incidents={incidents}

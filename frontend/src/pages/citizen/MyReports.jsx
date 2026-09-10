@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMyIncidents } from '../../api/incidents';
+import ErrorRetry from '../../components/ErrorRetry';
 import Loader from '../../components/Loader';
 import { CATEGORY_EMOJI } from '../../components/MapView';
 import Navbar from '../../components/Navbar';
@@ -7,25 +8,26 @@ import StatusBadge from '../../components/StatusBadge';
 import { SEVERITY_DOT, SEVERITY_TEXT, timeAgo } from '../../utils/constants';
 
 export default function MyReports() {
-  const { data: incidents = [], isLoading, isError } = useMyIncidents();
+  const { data: incidents = [], isLoading, isError, refetch } = useMyIncidents();
 
   return (
     <div className="flex flex-col min-h-screen bg-navy-950">
       <Navbar />
 
       {/* Sub-nav tabs */}
-      <div className="flex items-center gap-4 px-4 sm:px-6 py-2 border-b border-slate-700/50 bg-navy-900/70 text-sm">
+      <div className="flex items-center gap-4 px-4 sm:px-6 py-2 border-b border-slate-700/50 bg-navy-900/70 text-sm relative">
         <Link
           to="/citizen"
-          className="text-slate-400 hover:text-slate-200 pb-1.5 border-b-2 border-transparent hover:border-slate-500 transition-colors"
+          className="text-slate-400 hover:text-slate-200 pb-1.5 border-b-2 border-transparent hover:border-slate-500 transition-all duration-200"
         >
           Live Map
         </Link>
         <Link
           to="/citizen/my-reports"
-          className="text-slate-200 font-medium border-b-2 border-red-500 pb-1.5"
+          className="text-slate-200 font-medium border-b-2 border-red-500 pb-1.5 transition-all duration-200 relative"
         >
           My Reports
+          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t transition-all duration-200" />
         </Link>
       </div>
 
@@ -39,9 +41,7 @@ export default function MyReports() {
         {isLoading && <Loader text="Loading your reports…" />}
 
         {isError && (
-          <div className="panel p-6 text-center text-red-400 text-sm">
-            Failed to load reports. Please try again.
-          </div>
+          <ErrorRetry message="Couldn't load your reports" onRetry={refetch} />
         )}
 
         {!isLoading && !isError && incidents.length === 0 && (

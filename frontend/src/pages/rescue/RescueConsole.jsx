@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useIncidents, useUpdateIncidentStatus } from '../../api/incidents';
 import Button from '../../components/Button';
+import ErrorRetry from '../../components/ErrorRetry';
 import Loader from '../../components/Loader';
 import MapView, { CATEGORY_EMOJI } from '../../components/MapView';
 import Navbar from '../../components/Navbar';
@@ -185,7 +186,7 @@ function Section({ title, count, badge, children, emptyIcon, emptyText }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function RescueConsole() {
   const { user } = useAuth();
-  const { data: allIncidents = [], isLoading } = useIncidents();
+  const { data: allIncidents = [], isLoading, isError, refetch } = useIncidents();
   const [activeTab, setActiveTab] = useState('available'); // 'available' | 'mine'
 
   // Client-side filtering — backend only supports single status param
@@ -216,7 +217,7 @@ export default function RescueConsole() {
       <Navbar />
 
       {/* Tab bar */}
-      <div className="flex border-b border-slate-700/50 bg-navy-900/70 px-4 shrink-0">
+      <div className="flex border-b border-slate-700/50 bg-navy-900/70 px-4 shrink-0 relative">
         {[
           { id: 'available', label: 'Available', count: available.length, dot: 'bg-amber-500' },
           { id: 'mine',      label: 'My Jobs',   count: myJobs.length,    dot: 'bg-red-500' },
@@ -225,7 +226,7 @@ export default function RescueConsole() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`
-              flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
+              flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 relative
               ${activeTab === tab.id
                 ? 'border-red-500 text-slate-100'
                 : 'border-transparent text-slate-400 hover:text-slate-200'}
@@ -235,6 +236,9 @@ export default function RescueConsole() {
             {tab.count > 0 && (
               <span className={`w-2 h-2 rounded-full ${tab.dot} shrink-0`} />
             )}
+            {activeTab === tab.id && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-t transition-all duration-200" />
+            )}
           </button>
         ))}
       </div>
@@ -243,34 +247,40 @@ export default function RescueConsole() {
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-5 pb-20">
         {isLoading ? (
           <Loader text="Loading jobs…" />
+        ) : isError ? (
+          <ErrorRetry message="Couldn't load jobs" onRetry={refetch} />
         ) : (
           <>
             {activeTab === 'available' && (
-              <Section
-                title="Available Jobs"
-                count={available.length}
-                badge="bg-amber-500/20 text-amber-300"
-                emptyIcon="✅"
-                emptyText="No available jobs right now — check back soon."
-              >
-                {available.map((inc) => (
-                  <JobCard key={inc._id} incident={inc} mode="available" />
-                ))}
-              </Section>
+              <div className="animate-[fadeIn_0.15s_ease-out]">
+                <Section
+                  title="Available Jobs"
+                  count={available.length}
+                  badge="bg-amber-500/20 text-amber-300"
+                  emptyIcon="✅"
+                  emptyText="No available jobs right now — check back soon."
+                >
+                  {available.map((inc) => (
+                    <JobCard key={inc._id} incident={inc} mode="available" />
+                  ))}
+                </Section>
+              </div>
             )}
 
             {activeTab === 'mine' && (
-              <Section
-                title="My Jobs"
-                count={myJobsAll.length}
-                badge="bg-red-500/20 text-red-300"
-                emptyIcon="🚨"
-                emptyText="You have no active jobs — head to Available to accept one."
-              >
-                {myJobsAll.map((inc) => (
-                  <JobCard key={inc._id} incident={inc} mode="mine" />
-                ))}
-              </Section>
+              <div className="animate-[fadeIn_0.15s_ease-out]">
+                <Section
+                  title="My Jobs"
+                  count={myJobsAll.length}
+                  badge="bg-red-500/20 text-red-300"
+                  emptyIcon="🚨"
+                  emptyText="You have no active jobs — head to Available to accept one."
+                >
+                  {myJobsAll.map((inc) => (
+                    <JobCard key={inc._id} incident={inc} mode="mine" />
+                  ))}
+                </Section>
+              </div>
             )}
           </>
         )}

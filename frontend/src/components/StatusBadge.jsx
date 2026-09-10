@@ -16,7 +16,7 @@ const CONFIG = {
 export default function StatusBadge({ status, className = '' }) {
   const { label, cls } = CONFIG[status] ?? CONFIG.reported;
   return (
-    <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border ${cls} ${className}`}>
+    <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all duration-200 ${cls} ${className}`} key={status}>
       {label}
     </span>
   );

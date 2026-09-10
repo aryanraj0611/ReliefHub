@@ -1,1 +1,10 @@
 /* App-level overrides — keep minimal, prefer Tailwind utilities */
+
+/* Hide scrollbar utility — used on horizontally scrollable rows */
+.scrollbar-none {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE/Edge */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;               /* Chrome/Safari */
+}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDirectory, useReviewDocument, useVerificationDocument } from '../../api/users';
 import Button from '../../components/Button';
+import ErrorRetry from '../../components/ErrorRetry';
 import Loader from '../../components/Loader';
 import Navbar from '../../components/Navbar';
 import { useToast } from '../../context/ToastContext';
@@ -141,7 +142,7 @@ function VerificationCard({ entry }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function VerificationQueue() {
-  const { data: directory = [], isLoading } = useDirectory();
+  const { data: directory = [], isLoading, isError, refetch } = useDirectory();
 
   // Filter to only users with a pending document
   const pending = directory.filter((u) => u.documentStatus === 'pending');
@@ -177,7 +178,9 @@ export default function VerificationQueue() {
 
         {isLoading && <Loader text="Loading queue…" />}
 
-        {!isLoading && pending.length === 0 && (
+        {isError && <ErrorRetry message="Couldn't load verification queue" onRetry={refetch} />}
+
+        {!isLoading && !isError && pending.length === 0 && (
           <div className="panel p-10 text-center">
             <p className="text-3xl mb-3">✅</p>
             <p className="text-slate-400 text-sm">No pending verifications — all clear.</p>

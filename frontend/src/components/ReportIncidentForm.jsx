@@ -167,13 +167,14 @@ export default function ReportIncidentForm({ onClose }) {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{ animation: 'fadeIn 0.15s ease-out' }}
     >
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="panel w-full sm:max-w-xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6 outline-none"
+        className="panel w-full sm:max-w-xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6 outline-none animate-slide-up"
       >
         {step === 'success' ? (
           <ConfirmationCard incident={createdIncident} onClose={onClose} />

@@ -31,13 +31,12 @@ const SEVERITY_BORDER_COLOR = {
 
 // ── Build a divIcon from an emoji so we get custom styled markers ─────────────
 function makeIncidentIcon(category, severity) {
-  const pulse   = severity === 'critical';
-  const emoji   = CATEGORY_EMOJI[category] ?? CATEGORY_EMOJI.other;
-  const color   = SEVERITY_BORDER_COLOR[severity] ?? SEVERITY_BORDER_COLOR.medium;
-  const animate = pulse ? 'animate-ping-slow' : '';
+  const pulse = severity === 'critical';
+  const emoji = CATEGORY_EMOJI[category] ?? CATEGORY_EMOJI.other;
+  const color = SEVERITY_BORDER_COLOR[severity] ?? SEVERITY_BORDER_COLOR.medium;
 
   const html = `
-    <div style="position:relative;width:36px;height:36px;">
+    <div class="animate-marker-drop" style="position:relative;width:36px;height:36px;">
       ${pulse ? `<div style="position:absolute;inset:0;border-radius:50%;background:${color};opacity:0.4;" class="animate-ping"></div>` : ''}
       <div style="
         position:absolute;inset:0;

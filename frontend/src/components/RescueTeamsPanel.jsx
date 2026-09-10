@@ -1,6 +1,7 @@
 import { useDirectory } from '../api/users';
 import { useIncidents } from '../api/incidents';
 import { CATEGORY_EMOJI } from './MapView';
+import ErrorRetry from './ErrorRetry';
 import Loader from './Loader';
 
 // Statuses that mean a rescue member is actively on a job
@@ -55,10 +56,11 @@ function TeamMemberCard({ member, activeIncident }) {
 }
 
 export default function RescueTeamsPanel() {
-  const { data: directory = [], isLoading: dirLoading } = useDirectory();
+  const { data: directory = [], isLoading: dirLoading, isError: dirError, refetch } = useDirectory();
   const { data: incidents = [] }                         = useIncidents();
 
   if (dirLoading) return <Loader text="Loading rescue teams…" />;
+  if (dirError) return <ErrorRetry message="Couldn't load rescue teams" onRetry={refetch} />;
 
   // Only approved rescue_team accounts
   const rescueMembers = directory.filter(

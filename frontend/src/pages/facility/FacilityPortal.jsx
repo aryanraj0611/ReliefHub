@@ -6,6 +6,7 @@ import {
 } from '../../api/facilities';
 import Button from '../../components/Button';
 import ErrorBanner from '../../components/ErrorBanner';
+import ErrorRetry from '../../components/ErrorRetry';
 import Input from '../../components/Input';
 import Loader from '../../components/Loader';
 import MapView from '../../components/MapView';
@@ -428,7 +429,7 @@ function FacilityDashboard({ facility }) {
 // ── Page root ──────────────────────────────────────────────────────────────────
 export default function FacilityPortal() {
   const { user } = useAuth();
-  const { data: facility, isLoading, isError } = useMyFacility();
+  const { data: facility, isLoading, isError, refetch } = useMyFacility();
 
   return (
     <div className="flex flex-col min-h-screen bg-navy-950">
@@ -438,10 +439,7 @@ export default function FacilityPortal() {
 
       {isError && (
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="panel p-8 text-center max-w-sm">
-            <p className="text-3xl mb-3">⚠️</p>
-            <p className="text-slate-400 text-sm">Failed to load facility data. Please refresh.</p>
-          </div>
+          <ErrorRetry message="Couldn't load facility data" onRetry={refetch} />
         </div>
       )}
 

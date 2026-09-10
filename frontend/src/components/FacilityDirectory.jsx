@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFacilities } from '../api/facilities';
+import ErrorRetry from './ErrorRetry';
 import Loader from './Loader';
 
 function capacityColor(pct) {
@@ -15,14 +16,15 @@ const STATUS_BADGE = {
 };
 
 export default function FacilityDirectory() {
-  const { data: facilities = [], isLoading } = useFacilities();
-  const [filter, setFilter] = useState('all'); // 'all' | 'hospital' | 'shelter'
+  const { data: facilities = [], isLoading, isError, refetch } = useFacilities();
+  const [filter, setFilter] = useState('all');
 
   const visible = filter === 'all'
     ? facilities
     : facilities.filter((f) => f.type === filter);
 
   if (isLoading) return <Loader text="Loading facilities…" />;
+  if (isError)   return <ErrorRetry message="Couldn't load facilities" onRetry={refetch} />;
 
   return (
     <div className="flex flex-col h-full">

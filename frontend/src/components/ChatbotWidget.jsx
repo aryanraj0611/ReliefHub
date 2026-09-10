@@ -194,7 +194,7 @@ export default function ChatbotWidget() {
         <div
           className="fixed bottom-20 right-4 z-[2000] w-[360px] max-w-[calc(100vw-2rem)]
                      flex flex-col rounded-2xl shadow-panel border border-slate-700/60 bg-navy-900
-                     overflow-hidden"
+                     overflow-hidden animate-panel-in"
           style={{ height: '480px' }}
         >
           {/* Header */}
