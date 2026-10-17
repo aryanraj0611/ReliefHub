@@ -36,20 +36,11 @@ export function useSocket() {
 
     const socket = io(SOCKET_URL, {
       withCredentials: true,
-      // Pass the access token so the server can identify the user if needed
       auth: { token: accessToken ?? '' },
       transports: ['websocket', 'polling'],
     });
 
     ref.current = socket;
-
-    socket.on('connect', () => {
-      console.log('[socket] connected:', socket.id);
-    });
-
-    socket.on('connect_error', (err) => {
-      console.warn('[socket] connection error:', err.message);
-    });
 
     // ── Incident events ───────────────────────────────────────────────────────
     // "incident:new" — prepend the new incident to the cached list
@@ -105,5 +96,5 @@ export function useSocket() {
       socket.disconnect();
       ref.current = null;
     };
-  }, [user]); // reconnect if user changes (login/logout)
+  }, [user, accessToken]); // reconnect if user changes (login/logout) or token rotates
 }

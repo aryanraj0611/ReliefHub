@@ -74,7 +74,6 @@ function roleToSystemPrompt(role) {
 
 // ── Groq chat fallback ────────────────────────────────────────────────────────
 async function groqChatFallback(message, role) {
-  console.log('KEY LOADED:', !!process.env.GROQ_API_KEY, process.env.GROQ_API_KEY?.slice(0,8));
   const systemPrompt = roleToSystemPrompt(role);
 
   const controller = new AbortController();

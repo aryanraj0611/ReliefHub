@@ -1,4 +1,5 @@
 require("dotenv").config();
+console.log('CORS origin:', process.env.CLIENT_URL);
 const http = require('http');
 const express = require("express");
 const cors = require('cors');
@@ -21,6 +22,10 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection failed:", err.message));
+
+// Trust the first proxy hop (Render, Vercel) so express-rate-limit
+// reads the real client IP from X-Forwarded-For instead of the proxy's IP.
+app.set('trust proxy', 1);
 
 // Middleware — must be registered before routes
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
