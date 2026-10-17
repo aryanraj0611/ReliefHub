@@ -28,12 +28,11 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // Only attempt a single refresh per failed request.
-    // Skip if the failing request is itself the refresh call (avoid loops).
+    const isAuthEndpoint = /\/auth\/(login|register|refresh)/.test(original.url ?? '');
     if (
       error.response?.status === 401 &&
       !original._retried &&
-      !original.url?.includes('/auth/refresh')
+      !isAuthEndpoint
     ) {
       original._retried = true;
 
